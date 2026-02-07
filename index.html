@@ -2,13 +2,13 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Quiz</title>
+<title>NOX Quiz</title>
 
 <style>
 body{
   margin:0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(135deg,#0f172a,#020617);
+  font-family:Arial, Helvetica, sans-serif;
+  background:linear-gradient(135deg,#0f172a,#020617);
   color:#fff;
   display:flex;
   justify-content:center;
@@ -19,16 +19,14 @@ body{
 .card{
   background:#020617;
   border-radius:16px;
-  padding:25px;
-  width:90%;
+  padding:22px;
+  width:92%;
   max-width:420px;
   box-shadow:0 0 40px rgba(0,0,0,.6);
-  animation:fade .5s;
+  animation:fade .35s;
 }
 
-h1,h2{
-  text-align:center;
-}
+h1,h2,p{ text-align:center; }
 
 button{
   width:100%;
@@ -37,10 +35,10 @@ button{
   border-radius:10px;
   background:#4f46e5;
   color:white;
-  font-size:16px;
+  font-size:15px;
   cursor:pointer;
   margin-top:10px;
-  transition:.2s;
+  transition:.15s;
 }
 
 button:hover{
@@ -52,13 +50,17 @@ button:hover{
   background:#111827;
 }
 
-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:10px;
-  outline:none;
+.option.correct{
+  background:#16a34a;
+}
+
+.option.wrong{
+  background:#dc2626;
+}
+
+button:disabled{
+  opacity:.8;
+  cursor:not-allowed;
 }
 
 .progress{
@@ -66,7 +68,7 @@ input{
   background:#1f2933;
   border-radius:10px;
   overflow:hidden;
-  margin-bottom:15px;
+  margin-bottom:10px;
 }
 
 .bar{
@@ -76,9 +78,23 @@ input{
   transition:.3s;
 }
 
+.counter{
+  text-align:center;
+  font-size:13px;
+  opacity:.8;
+  margin-bottom:10px;
+}
+
+.footer{
+  text-align:center;
+  font-size:11px;
+  opacity:.5;
+  margin-top:15px;
+}
+
 @keyframes fade{
-  from{opacity:0; transform:scale(.95)}
-  to{opacity:1;}
+  from{opacity:0; transform:translateY(10px)}
+  to{opacity:1; transform:translateY(0)}
 }
 </style>
 </head>
@@ -100,81 +116,113 @@ const allQuestions = [
   {q:"Qual é framework JS?", a:["Laravel","React","Django","Flask"], c:1}
 ];
 
-let nick = "";
-let questions = [];
-let index = 0;
-let score = 0;
+let nick="";
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
 
-const app = document.getElementById("app");
+const app=document.getElementById("app");
 
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
 function startScreen(){
-  app.innerHTML = `
-    <h1>Quiz</h1>
+  app.innerHTML=`
+    <h1>NOX QUIZ</h1>
     <p>Digite seu nick</p>
-    <input id="nickInput" placeholder="Seu nome">
+    <input id="nickInput" placeholder="Seu nick">
     <button onclick="startGame()">Começar</button>
+    <div class="footer">criando por NOX GAME. Borges019</div>
   `;
 }
 
 function startGame(){
-  const value = document.getElementById("nickInput").value.trim();
-  if(!value) return;
+  const v=document.getElementById("nickInput").value.trim();
+  if(!v) return;
+  nick=v;
 
-  nick = value;
-
-  questions = shuffle([...allQuestions]).slice(0,5);
-
-  index = 0;
-  score = 0;
+  questions=shuffle([...allQuestions]).slice(0,5);
+  index=0;
+  score=0;
 
   renderQuestion();
 }
 
 function renderQuestion(){
-  const q = questions[index];
+  locked=false;
 
-  const percent = ((index)/questions.length)*100;
+  const q=questions[index];
+  const percent=(index/questions.length)*100;
 
-  app.innerHTML = `
+  app.innerHTML=`
     <div class="progress">
       <div class="bar" style="width:${percent}%"></div>
     </div>
 
+    <div class="counter">Pergunta ${index+1} / ${questions.length}</div>
+
     <h2>${q.q}</h2>
 
     ${q.a.map((opt,i)=>`
-      <button class="option" onclick="answer(${i})">${opt}</button>
+      <button class="option" onclick="answer(${i}, this)">${opt}</button>
     `).join("")}
+
+    <div class="footer">criando por NOX GAME. Borges019</div>
   `;
 }
 
-function answer(i){
-  if(i === questions[index].c){
+function answer(i,btn){
+  if(locked) return;
+  locked=true;
+
+  const q=questions[index];
+  const buttons=document.querySelectorAll(".option");
+
+  if(i===q.c){
+    btn.classList.add("correct");
     score++;
-  }
-
-  index++;
-
-  if(index < questions.length){
-    renderQuestion();
   }else{
-    finish();
+    btn.classList.add("wrong");
+    buttons[q.c].classList.add("correct");
   }
+
+  buttons.forEach(b=>b.disabled=true);
+
+  setTimeout(()=>{
+    index++;
+    if(index<questions.length){
+      renderQuestion();
+    }else{
+      finish();
+    }
+  },700);
 }
 
 function finish(){
-  const ganhou = score >= 3;
+  const total=questions.length;
+  const percent=Math.round((score/total)*100);
+  const ganhou=score>=3;
 
-  app.innerHTML = `
+  app.innerHTML=`
     <h2>${nick}</h2>
-    <p>Acertos: ${score} / ${questions.length}</p>
+    <p>Acertos: ${score} / ${total}</p>
+    <p>Aproveitamento: ${percent}%</p>
     <h1>${ganhou ? "Você ganhou" : "Você perdeu"}</h1>
-    <button onclick="startScreen()">Jogar novamente</button>
+
+    <button onclick="playAgain()">Jogar novamente</button>
+    <button onclick="startScreen()">Trocar nick</button>
+
+    <div class="footer">criando por NOX GAME. Borges019</div>
   `;
+}
+
+function playAgain(){
+  questions=shuffle([...allQuestions]).slice(0,5);
+  index=0;
+  score=0;
+  renderQuestion();
 }
 
 startScreen();
