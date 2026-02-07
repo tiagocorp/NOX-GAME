@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>NOX Games - Quiz</title>
+</head>
+<body>
+
+<h1>NOX GAMES</h1>
+<p id="pergunta"></p>
+
+<input id="resposta" placeholder="responda aqui">
+<button onclick="enviar()">Enviar</button>
+
+<p id="msg"></p>
+
+<script>
+let pontos = 0;
+
+let perguntas = [
+  {p:"Qual é a capital do Brasil?", r:"brasilia"},
+  {p:"2 + 2 =", r:"4"},
+  {p:"Quem criou a NOX?", r:"tiago"}
+];
+
+let atual = 0;
+
+function mostrar(){
+  document.getElementById("pergunta").innerText = perguntas[atual].p;
+}
+
+function enviar(){
+  let resp = document.getElementById("resposta").value.toLowerCase();
+  if(resp == perguntas[atual].r){
+    pontos++;
+    document.getElementById("msg").innerText = "Acertou! Pontos: " + pontos;
+  }else{
+    document.getElementById("msg").innerText = "Errou! Pontos: " + pontos;
+  }
+
+  atual++;
+
+  if(atual < perguntas.length){
+    mostrar();
+    document.getElementById("resposta").value = "";
+  }else{
+    document.getElementById("pergunta").innerText = "Fim do jogo!";
+  }
+}
+
+mostrar();
+</script>
+
+</body>
+</html>
