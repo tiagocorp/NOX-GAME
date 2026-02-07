@@ -1,54 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>NOX Games - Quiz</title>
+<title>Quiz</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg,#0f172a,#020617);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.card{
+  background:#020617;
+  border-radius:16px;
+  padding:25px;
+  width:90%;
+  max-width:420px;
+  box-shadow:0 0 40px rgba(0,0,0,.6);
+  animation:fade .5s;
+}
+
+h1,h2{
+  text-align:center;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#4f46e5;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:10px;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.03);
+  background:#6366f1;
+}
+
+.option{
+  background:#111827;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:10px;
+  outline:none;
+}
+
+.progress{
+  height:8px;
+  background:#1f2933;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:15px;
+}
+
+.bar{
+  height:100%;
+  width:0%;
+  background:#22c55e;
+  transition:.3s;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:scale(.95)}
+  to{opacity:1;}
+}
+</style>
 </head>
 <body>
 
-<h1>NOX GAMES</h1>
-<p id="pergunta"></p>
-
-<input id="resposta" placeholder="responda aqui">
-<button onclick="enviar()">Enviar</button>
-
-<p id="msg"></p>
+<div class="card" id="app"></div>
 
 <script>
-let pontos = 0;
-
-let perguntas = [
-  {p:"Qual é a capital do Brasil?", r:"brasilia"},
-  {p:"2 + 2 =", r:"4"},
-  {p:"Quem criou a NOX?", r:"tiago"}
+const allQuestions = [
+  {q:"Qual linguagem roda no navegador?", a:["Python","Java","JavaScript","C++"], c:2},
+  {q:"HTML serve pra quê?", a:["Banco","Estrutura","Estilo","Servidor"], c:1},
+  {q:"CSS é usado para?", a:["Banco","Lógica","Estilo","API"], c:2},
+  {q:"GitHub Pages é…", a:["Banco","Hospedagem","Editor","Servidor pago"], c:1},
+  {q:"JS é linguagem?", a:["Marcação","Estilo","Programação","Banco"], c:2},
+  {q:"Qual não é linguagem?", a:["HTML","CSS","Python","Node"], c:3},
+  {q:"LocalStorage salva…", a:["No PC","Na nuvem","No navegador","No GitHub"], c:2},
+  {q:"Front-end é…", a:["Servidor","Banco","Interface","API"], c:2},
+  {q:"Back-end cuida de…", a:["Estilo","Layout","Servidor","Fonte"], c:2},
+  {q:"Qual é framework JS?", a:["Laravel","React","Django","Flask"], c:1}
 ];
 
-let atual = 0;
+let nick = "";
+let questions = [];
+let index = 0;
+let score = 0;
 
-function mostrar(){
-  document.getElementById("pergunta").innerText = perguntas[atual].p;
+const app = document.getElementById("app");
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
 }
 
-function enviar(){
-  let resp = document.getElementById("resposta").value.toLowerCase();
-  if(resp == perguntas[atual].r){
-    pontos++;
-    document.getElementById("msg").innerText = "Acertou! Pontos: " + pontos;
-  }else{
-    document.getElementById("msg").innerText = "Errou! Pontos: " + pontos;
+function startScreen(){
+  app.innerHTML = `
+    <h1>Quiz</h1>
+    <p>Digite seu nick</p>
+    <input id="nickInput" placeholder="Seu nome">
+    <button onclick="startGame()">Começar</button>
+  `;
+}
+
+function startGame(){
+  const value = document.getElementById("nickInput").value.trim();
+  if(!value) return;
+
+  nick = value;
+
+  questions = shuffle([...allQuestions]).slice(0,5);
+
+  index = 0;
+  score = 0;
+
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[index];
+
+  const percent = ((index)/questions.length)*100;
+
+  app.innerHTML = `
+    <div class="progress">
+      <div class="bar" style="width:${percent}%"></div>
+    </div>
+
+    <h2>${q.q}</h2>
+
+    ${q.a.map((opt,i)=>`
+      <button class="option" onclick="answer(${i})">${opt}</button>
+    `).join("")}
+  `;
+}
+
+function answer(i){
+  if(i === questions[index].c){
+    score++;
   }
 
-  atual++;
+  index++;
 
-  if(atual < perguntas.length){
-    mostrar();
-    document.getElementById("resposta").value = "";
+  if(index < questions.length){
+    renderQuestion();
   }else{
-    document.getElementById("pergunta").innerText = "Fim do jogo!";
+    finish();
   }
 }
 
-mostrar();
+function finish(){
+  const ganhou = score >= 3;
+
+  app.innerHTML = `
+    <h2>${nick}</h2>
+    <p>Acertos: ${score} / ${questions.length}</p>
+    <h1>${ganhou ? "Você ganhou" : "Você perdeu"}</h1>
+    <button onclick="startScreen()">Jogar novamente</button>
+  `;
+}
+
+startScreen();
 </script>
 
 </body>
